@@ -1,26 +1,26 @@
 const express = require("express");
 const app = express();
 
-// Determine the port from the environment or command-line argument
-const port = process.env.PORT || process.argv[2] || 3000;
-
-// Middleware to log the version of the app
+// Middleware to check the 'X-Version' header
 app.use((req, res, next) => {
-  if (port == 3000) {
-    req.version = "A"; // Version A running on port 3000
-  } else if (port == 4000) {
-    req.version = "B"; // Version B running on port 4000
-  }
-  console.log(`Serving Version ${req.version}`);
+  // Default version is A
+  req.version = req.headers["x-version"] || "A";
   next();
 });
 
 // A simple route for demonstration
 app.get("/", (req, res) => {
-  res.send(`Hello from Version ${req.version}`);
+  if (req.version === "A") {
+    res.send("Hello from Version A");
+  } else if (req.version === "B") {
+    res.send("Hello from Version B");
+  } else {
+    res.status(400).send("Invalid version header");
+  }
 });
 
 // Start the server
+const port = process.env.PORT || 3000;
 app.listen(port, () => {
   console.log(`App running on port ${port}`);
 });
