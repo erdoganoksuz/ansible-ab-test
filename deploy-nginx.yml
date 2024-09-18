@@ -1,0 +1,33 @@
+---
+- name: Deploy and configure Nginx for A/B testing
+  hosts: webservers
+  become: yes
+  vars:
+    nodejs_port: 3000 # Node.js app running port
+    nginx_config_path: "/etc/nginx/sites-available/default"
+
+  tasks:
+    - name: Install Nginx
+      apt:
+        name: nginx
+        state: present
+        update_cache: yes
+
+    - name: Copy Nginx configuration for A/B testing
+      template:
+        src: nginx_ab_test.j2
+        dest: "{{ nginx_config_path }}"
+      notify:
+        - restart nginx
+
+    - name: Enable Nginx service
+      systemd:
+        name: nginx
+        enabled: yes
+        state: started
+
+  handlers:
+    - name: restart nginx
+      systemd:
+        name: nginx
+        state: restarted
